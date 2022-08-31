@@ -1,84 +1,79 @@
-const canvas = document.querySelector("#canvas1")
-const ctx  = canvas.getContext('2d');
-canvas.width= window.innerWidth ;
-canvas.height = window.innerHeight ;
-let gradient = ctx.createLinearGradient(0 , 0, canvas.width ,canvas.height);
-// let gradient = ctx.createRadialGradient(canvas.width/2  , canvas.height/2, 100 , canvas.width/2 ,canvas.height/2 , 100 );
-gradient.addColorStop(0 , 'red') // start of linear griadnat that hava all widow 
-gradient.addColorStop(0.2 , 'yellow') // then   
-gradient.addColorStop(0.4 , 'green') 
-gradient.addColorStop(0.6 , 'cyan')
-gradient.addColorStop(0.8 , 'blue')
-gradient.addColorStop(1 , 'magenta')
+const canvas = document.querySelector("#canvas1");
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth ;
+    canvas.height = window.innerHeight ;
 
-
-class Symbol{
-    constructor(x, y ,fontSize , canvasheight){
-       this.character = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
-       this.x =x ; 
-       this.y =y ;  // convert index random to this value charAt 
-       this.fontSize = fontSize;
-       this.canvasheight = canvasheight ;
-       this.text = '' ;
+    const buttomElements = document.querySelectorAll('.button');
+    let buttommeasurment = []; // array all button in it 
+    function measurebuttom(){
+        buttommeasurment = [] ;
+        buttomElements.forEach(buttom =>{
+            buttommeasurment.push(buttom.getBoundingClientRect());
+        })
     }
-    draw(context ){
-      this.text = this.character.charAt(Math.floor(Math.random() * this.character.length));
-      context.fillText(this.text , this.x  * this.fontSize , this.y * this.fontSize);
-      if(this.y * this.fontSize > canvas.height && Math.random() >0.98){
-          this.y = 0 ;
-      }else {
-          this.y += 1; 
-      }
+    measurebuttom();
+    // create particle
+   let particleArray = [];
+   class Particle{
+       constructor(x , y ,size){
+           this.x = x; 
+           this.y =y ;
+           this.size= size; 
+           this.weight = Math.random() * 1.5 + 1.5 ;
+           this.directionx = Math.random() * 2; 
+    }
+       update(){
+           this.y += this.weight ;
+           this.x += this.directionx;
+           if(this.size >= 0.3) this.size -= 0.1 ;
+        }
+        draw(){
+            ctx.fillStyle = 'white' ;
+            ctx.fillRect(this.x , this.y , this.size , this.size );
+        
+        }
+   }
+   let activebutton = 100 ; 
+   buttomElements.forEach(button => button.addEventListener("mouseenter" , function(){
+       activebutton = button.dataset.number ; // 0, 1, 2 
+   }))
+   buttomElements.forEach(button => button.addEventListener("mouseleave" , function(){
+    activebutton = 100 ;
+}))
+function handleparticle(){
+    for(let i =0 ; i <particleArray.length ; i++){
+    for(let y =0 ; y <particleArray.length ; y++){
+        let dx = particleArray[i].x - particleArray[y].x ; 
+        let dy = particleArray[i].y - particleArray[y].y ;
+        let distance = Math.sqrt(dx * dx + dy * dy );
+        ctx.strokeStyle = 'grey';
+        if(distance < 80 ){
+             ctx.beginPath();
+             ctx.moveTo(particleArray[i].x , particleArray[i].y);   
+             ctx.lineTo(particleArray[y].x , particleArray[y].y);  
+             ctx.stroke(); 
+        }
+    }
+        particleArray[i].update();
+        particleArray[i].draw();    
+        if(particleArray[i].size <= 1 ){
+            particleArray.splice(i, 1);
+            i--; 
+        }
+    }
+}   
+function createparticle(){
+    if(activebutton < 100){
+        let size = Math.random() * 40 +10  ; 
+      let x = Math.random() * (buttommeasurment[activebutton].width - size *2 ) + buttommeasurment[activebutton].x + size ;
+     let y = buttommeasurment[activebutton].y + 40   ; 
+        particleArray.push(new Particle(x, y ,size));
     }
 }
-class Effect{
-    constructor(canvaswidth , canvasheight){
-       this.canvaswidth = canvaswidth; 
-       this.canvasheight = canvasheight ; 
-       this.fontSize =  25 ; 
-       this.columns = this.canvaswidth/ this.fontSize; 
-       this.symbols = [];
-       this.#initialize();
-    }
-    #initialize(){
-      for(let i = 0; i <this.columns ; i++){
-          this.symbols[i] = new Symbol(i , 0 , this.fontSize , this.canvasheight);
-      }
-    }
-    resize(width, height){
-      this.canvaswidth = width; 
-      this.canvasheight = height;
-      this.columns = this.canvaswidth/ this.fontSize; 
-      this.symbols = [];
-      this.#initialize();
-    }
+function animate(){
+    ctx.clearRect(0, 0, canvas.width,canvas.height);
+    createparticle();
+    handleparticle();
+    requestAnimationFrame(animate)
 }
-const effect  = new Effect(canvas.width , canvas.height );
-let lasttime = 0 ;
-const fps = 15 ; 
-const nextframe = 1000/fps;
-let timer = 0 ;
-
-function animate(timestamp ){
-    const deltatime = timestamp - lasttime ; 
-    lasttime = timestamp;
-    if(timer > nextframe){
-    ctx.fillStyle = 'rgba(0 , 0 ,0 , 0.05)';
-    ctx.fillRect(0 , 0, canvas.width , canvas.height)
-    ctx.fillStyle = gradient ; 
-     ctx.font = effect.fontSize + 'px monospace' ;
-     effect.symbols.forEach(symbol => {
-         symbol.draw(ctx);
-     })
-    }else {
-        timer += deltatime ;
-    }
-     requestAnimationFrame(animate)
-}
-animate(0)
-window.addEventListener("resize" , function(){
-    canvas.width= window.innerWidth ;
-canvas.height = window.innerHeight ;
-effect.resize(canvas.width , canvas.height);
-})
+animate();

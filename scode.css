@@ -1,14 +1,63 @@
 *{
-    margin: 0;
     padding: 0;
+    margin: 0;
     box-sizing: border-box;
 }
 body{
-    overflow: hidden;
+    background-color: black;
+}
+.buttons{
+    position: absolute;
+    top: 30%;
+    left: 0;
+    width: 100vw;
+    text-align: center;
+}
+#canvas1{
+    background-color: black;
+    /* filter:  blur(10px) contrast(5); */
+}
+.button{
+    position: relative;
+    width: 25%;
+    height: 120px;
+    margin: 10px;
+    display: inline-block;
+    border-radius: 50px;
+    border: 5px solid white ;
+    background: transparent;
+    transition: 0.5s;
+    font-size: 30px;
+    margin: 0 auto;
+    color: white;
+    font-weight: 900;
+    line-height: 110px;
+    min-width: 300px;
     background: black;
 }
-canvas{
+.button::before{
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50px;
+    transition: 0.5s;
+    background: black;
 }
+.button:nth-child(1)::before{
+    content: 'Home';
+}
+.button:nth-child(2)::before{
+    content: 'Shop';
+}
+.button:nth-child(3)::before{
+    content: 'About';
+}
+.button:hover::before{
+    color: black; 
+    -webkit-text-stroke:2px white;
+}   
+.button:hover{
+}   
